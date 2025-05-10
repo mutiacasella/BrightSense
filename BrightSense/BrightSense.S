@@ -68,7 +68,9 @@ main_loop:
   SUB R18, R23
   STS OCR1A, R18
 
-  RCALL delay
+  LDI R21, 3          ; memberikan delay 1000ms (1 detik)
+  LDI R22, 232        ; R21 & R22 (3*256 + 232 = 1000)
+  RCALL timer0_delay_ms
   RJMP main_loop
 
 ; Subroutines
@@ -146,13 +148,30 @@ wait_udre:
   STS UDR0, R16      ; kirim karakter
   RET
 
-delay:
-  LDI R19, 50
-delay_loop1:
-  LDI R20, 255
-delay_loop2:
-  DEC R20
-  BRNE delay_loop2
-  DEC R19
-  BRNE delay_loop1
-  RET
+;================================================================
+;delay timer0 dengan menggunakan nilai 16-bit dari R21 & R22 sebagai nilai milidetik (ms)
+timer0_delay_ms:
+    INC R21
+    INC R22
+    LDI R20, 0x83
+    OUT TCNT0, R20    ;load Timer0
+    LDI R20,0x03
+    OUT TCCR0B, R20   ;Timer0, Normal mode, int clk, prescaler 64
+    RJMP timer0_delay_ms_l2
+timer0_delay_ms_l1: 
+    LDI R22, 255
+timer0_delay_ms_l2: 
+    IN R20, TIFR0     ;read TIFR
+    SBRS R20, TOV0    ;if TOV0 is set skip next instruction
+    RJMP timer0_delay_ms_l2
+    LDI R20, (1 << TOV0)
+    OUT TIFR0, R20
+    DEC R22
+    BRNE timer0_delay_ms_l2
+    DEC R21
+    BRNE timer0_delay_ms_l1
+timer0_delay_ms_done:
+    LDI R20,0x0
+    OUT TCCR0B, R20   ;stop Timer0
+    LDI R20,1<<TOV0
+    RET 
