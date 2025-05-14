@@ -1,14 +1,26 @@
-#define __SFR_OFFSET 0x00
+ #define __SFR_OFFSET 0x00
 #include "avr/io.h"
+
+.org 0x0002
+  jmp int0_handler
 
 .global main
 
 main:
+  ;Setup register untuk LED mode manual
+  CLR R15
+  CLR R19
   ; Setup I/O
   CBI DDRC, 2        ; PC2 (input) - LDR2
   CBI DDRC, 3        ; PC3 (input) - LDR1
   CBI DDRC, 4        ; PC4 (input) - LDR3
   SBI DDRB, 1        ; PB1 (output) - LED (OC1A)
+  CBI DDRD, 2        ; PD2 (input) - button (INT0)
+  SBI PORTD, 2       ; pullup input
+  CBI DDRD, 3        ; PD3 (input) - button decrement
+  SBI PORTD, 3       ; pullup input
+  CBI DDRD, 4        ; PD4 (input) - button increment
+  SBI PORTD, 4       ; pullup input
 
   ; Setup ADC
   LDI R16, 0x60      ; AVcc, left-justified
@@ -33,6 +45,12 @@ main:
   LDI R16, (1<<WGM12) | (1<<CS11)    ; prescaler 8
   STS TCCR1B, R16
 
+  ; Setup interrupt
+  LDI R16, (1<<ISC01)
+  OUT MCUCR, R16      ;Menggunakan mode falling-edge pada interrupt eksternal INT0
+  LDI R16, (1<<INT0)
+  OUT EIMSK, R16      ;Mengaktifkan pin INT0
+  SEI                 ;Mengaktifkan flag Interrupt pada status register
 main_loop:
   ; Baca LDR (ADC2)
   LDI R16, 0x62      ; channel ADC2
@@ -71,6 +89,31 @@ main_loop:
   LDI R21, 3          ; memberikan delay 1000ms (1 detik)
   LDI R22, 232        ; R21 & R22 (3*256 + 232 = 1000)
   RCALL timer0_delay_ms
+  CPI R19, 0
+  BREQ main_loop
+  RJMP manual_loop
+
+manual_loop:
+  SBIC  PIND, 4             ;skip line berikutnya jika tombol tidak ditekan
+  DEC   R15
+  SBIC  PIND, 3             ;skip line berikutnya jika tombol tidak ditekan
+  INC   R15
+  
+  ; Atur PWM
+  STS OCR1A, R15
+
+  CP R23, R15
+  BREQ manual_loop_skip_print
+  MOV R23, R15       ; simpan hasil ke R23
+
+  ; Kirim ke USART
+  RCALL print_3digit_decimal
+manual_loop_skip_print:
+  CLR R21                   ; memberikan delay 10ms 
+  LDI R22, 10
+  RCALL timer0_delay_ms
+  CPI R19, 1
+  BREQ manual_loop
   RJMP main_loop
 
 ; Subroutines
@@ -175,3 +218,11 @@ timer0_delay_ms_done:
     OUT TCCR0B, R20   ;stop Timer0
     LDI R20,1<<TOV0
     RET 
+  
+;================================================================
+int0_handler:
+    PUSH  R16
+    LDI   R16, 1
+    EOR   R19, R16  ;mentoggle bit 0 R19
+    POP   R16
+    RETI
