@@ -8,11 +8,11 @@
 ;================================================================
 
 main:
-  ; Inisialisasi Stack Pointer ++++++++++++++++++++
+  ; Inisialisasi Stack Pointer
   LDI R16, hi8(RAMEND)
   OUT SPH, R16
   LDI R16, lo8(RAMEND)
-  OUT SPL, R16 ;++++++++++++++++++++
+  OUT SPL, R16
 
   ; Setup register untuk LED mode manual
   CLR R15
@@ -338,81 +338,83 @@ timer0_delay_ms_done:
 
 ;================================================================
 LCD_init:
-      RCALL I2C_start         ; memulai pengiriman I2C
-      ldi R29, 0x7C           ; address LCD = 0x7C
-      RCALL I2C_write
+  RCALL I2C_start         ; memulai pengiriman I2C
+  ldi R29, 0x7C           ; address LCD = 0x7C
+  RCALL I2C_write
 
-      CLR   R21
-      CLR   R22
-      LDI   R27, 0x80         ; RS = 0
-      LDI   R16, 0x28         ; command untuk LCD 2 lines, 5x7 matrix
-      RCALL command_wrt       ; mengirimkan command
-      LDI   R16, 0x0C         ; command untuk disp ON, cursor OFF
-      RCALL command_wrt       ; mengirimkan command
-      LDI   R16, 0x01         ; command untuk clear LCD
-      RCALL command_wrt       ; mengirimkan command
-      LDI   R16, 0x06         ; command untuk shift cursor right
-      RCALL command_wrt       ; mengirimkan command
+  CLR   R21
+  CLR   R22
+  LDI   R27, 0x80         ; RS = 0
+  LDI   R16, 0x28         ; command untuk LCD 2 lines, 5x7 matrix
+  RCALL command_wrt       ; mengirimkan command
+  LDI   R16, 0x0C         ; command untuk disp ON, cursor OFF
+  RCALL command_wrt       ; mengirimkan command
+  LDI   R16, 0x01         ; command untuk clear LCD
+  RCALL command_wrt       ; mengirimkan command
+  LDI   R16, 0x06         ; command untuk shift cursor right
+  RCALL command_wrt       ; mengirimkan command
 
-      RCALL I2C_stop          ; menghentikan pengiriman I2C
-      RET  
+  RCALL I2C_stop          ; menghentikan pengiriman I2C
+  RET  
 ;================================================================
 command_wrt:
-      MOV   R29, R27
-      RCALL I2C_write         ; mengirimkan control byte
-      RCALL delay_us          ; mikrosekon delay
-      MOV   R29, R16
-      RCALL I2C_write         ; mengirimkan data byte
-      RCALL delay_us          ; mikrosekon delay
-      RET
+  MOV   R29, R27
+  RCALL I2C_write         ; mengirimkan control byte
+  RCALL delay_us          ; mikrosekon delay
+  MOV   R29, R16
+  RCALL I2C_write         ; mengirimkan data byte
+  RCALL delay_us          ; mikrosekon delay
+  RET
 ;================================================================
 data_wrt:
-      MOV   R29, R27
-      RCALL I2C_write         ; mengirimkan control byte
-      RCALL delay_us          ; mikrosekon delay
-      MOV   R29, R16
-      RCALL I2C_write         ; mengirimkan data byte
-      RCALL delay_us          ; mikrosekon delay
-      RET
+  MOV   R29, R27
+  RCALL I2C_write         ; mengirimkan control byte
+  RCALL delay_us          ; mikrosekon delay
+  MOV   R29, R16
+  RCALL I2C_write         ; mengirimkan data byte
+  RCALL delay_us          ; mikrosekon delay
+  RET
 ;================================================================
 disp_msg:
-    RCALL I2C_start           ; memulai pengiriman I2C
-    ldi R29, 0x7C             ; address LCD = 0x7C
-    RCALL I2C_write
+  RCALL I2C_start           ; memulai pengiriman I2C
+  ldi R29, 0x7C             ; address LCD = 0x7C
+  RCALL I2C_write
 agn:LPM   R16, Z+             ; memuat char dari string pada R16
-    CPI   R16, 13
-    BREQ  newl
-    CPI   R16, 0              ; memeriksa apakah R16=0 (akhir dari string)
-    BREQ  ext                 ; exit jika R16=0
-    ;--------------------------------------------------------------------
-    CLR   R21
-    LDI   R22, 1
-    RCALL timer0_delay_ms 
-    LDI   R27, 0xC0   
-    RCALL data_wrt
-    ;--------------------------------------------------------------------
-    RJMP  agn                 ; loop untuk mendapatkan char selanjutnya
-    ;--------------------------------------------------------------------
+  CPI   R16, 13
+  BREQ  newl
+  CPI   R16, 0              ; memeriksa apakah R16=0 (akhir dari string)
+  BREQ  ext                 ; exit jika R16=0
+  ;--------------------------------------------------------------------
+  CLR   R21
+  LDI   R22, 1
+  RCALL timer0_delay_ms 
+  LDI   R27, 0xC0   
+  RCALL data_wrt
+  ;--------------------------------------------------------------------
+  RJMP  agn                 ; loop untuk mendapatkan char selanjutnya
+  ;--------------------------------------------------------------------
 ext:RCALL I2C_stop            ; menghentikan pengiriman I2C
-    RET
-newl: LDI   R27, 0x80   
-      LDI   R16, 0xC0         ; command untuk memindahkan cursor menuju baris kedua
-      RCALL command_wrt       ; mengirimkan command
-      RJMP agn
+  RET
+newl: 
+  LDI   R27, 0x80   
+  LDI   R16, 0xC0         ; command untuk memindahkan cursor menuju baris kedua
+  RCALL command_wrt       ; mengirimkan command
+  RJMP agn
 ;================================================================
 delay_short:
-      NOP
-      NOP
-      RET
+  NOP
+  NOP
+  RET
 ;------------------------
 delay_us:
-      PUSH  R20
-      LDI   R20, 90
-l3:   RCALL delay_short
-      DEC   R20
-      BRNE  l3
-      POP   R20
-      RET
+  PUSH  R20
+  LDI   R20, 90
+l3: 
+  RCALL delay_short
+  DEC   R20
+  BRNE  l3
+  POP   R20
+  RET
 ;================================================================
 ; Print ke LCD
 LCD_print_3digit_decimal:
@@ -477,37 +479,37 @@ LCD_print_3digit_decimal:
 
 ;================================================================
 I2C_init:
-    LDI   R28, 0
-    STS   TWSR, R28       ; Prescaler = 1 (TWPS = 00)
-    LDI   R28, 24         ; TWBR = 24 → SCL ≈ 250 kHz
-    STS   TWBR, R28
-    RET
+  LDI   R28, 0
+  STS   TWSR, R28       ; Prescaler = 1 (TWPS = 00)
+  LDI   R28, 24         ; TWBR = 24 → SCL ≈ 250 kHz
+  STS   TWBR, R28
+  RET
 ;==============================================================
 I2C_start:
-    LDI   R28, (1<<TWINT)|(1<<TWSTA)|(1<<TWEN)
-    STS   TWCR, R28       ;transmit START condition
-    ;----------------------------------------------------------
+  LDI   R28, (1<<TWINT)|(1<<TWSTA)|(1<<TWEN)
+  STS   TWCR, R28       ;transmit START condition
+  ;----------------------------------------------------------
 wt1:LDS   R28, TWCR
-    SBRS  R28, TWINT      ;TWI interrupt = 1?
-    RJMP  wt1             ;no, wait for end of transmission
-    ;----------------------------------------------------------
-    RET
+  SBRS  R28, TWINT      ;TWI interrupt = 1?
+  RJMP  wt1             ;no, wait for end of transmission
+  ;----------------------------------------------------------
+  RET
 ;==============================================================
 I2C_write:
-    STS   TWDR, R29       ;copy SLA+W into data register
-    LDI   R28, (1<<TWINT)|(1<<TWEN)
-    STS   TWCR, R28       ;transmit SLA+W
-    ;----------------------------------------------------------
+  STS   TWDR, R29       ;copy SLA+W into data register
+  LDI   R28, (1<<TWINT)|(1<<TWEN)
+  STS   TWCR, R28       ;transmit SLA+W
+  ;----------------------------------------------------------
 wt2:LDS   R28, TWCR
-    SBRS  R28, TWINT
-    RJMP  wt2             ;wait for end of transmission
-    ;----------------------------------------------------------
-    RET
+  SBRS  R28, TWINT
+  RJMP  wt2             ;wait for end of transmission
+  ;----------------------------------------------------------
+  RET
 ;==============================================================
 I2C_stop:
-    LDI   R28, (1<<TWINT)|(1<<TWSTO)|(1<<TWEN)
-    STS   TWCR, R28       ;transmit STOP condition
-    RET
+  LDI   R28, (1<<TWINT)|(1<<TWSTO)|(1<<TWEN)
+  STS   TWCR, R28       ;transmit STOP condition
+  RET
 ;================================================================
 
 ; Interrupt untuk switch mode otomatis <-> manual
@@ -515,6 +517,8 @@ __vector_1:
   PUSH R16
   PUSH R17
   PUSH R18
+  PUSH R30
+  PUSH R31
 
   ; debounce (5-10 ms)
   LDI R17, 100
@@ -529,6 +533,32 @@ debounce_delay:
   LDI R16, 1
   EOR R19, R16
 
+  ; print mode to serial monitor
+  CPI R19, 0
+  BREQ print_auto_mode
+
+  ; print manual mode message
+  LDI R30, lo8(serial_msg_manual)
+  LDI R31, hi8(serial_msg_manual)
+  RJMP print_mode_msg
+
+; print auto mode message
+print_auto_mode:  
+  LDI R30, lo8(serial_msg_auto)
+  LDI R31, hi8(serial_msg_auto)
+
+print_mode_msg:
+  ; load and send each character
+print_loop:
+  LPM R16, Z+
+  CPI R16, 0
+  BREQ end_print
+  RCALL usart_send
+  RJMP print_loop
+
+end_print:
+  POP R31
+  POP R30
   POP R18
   POP R17
   POP R16
@@ -536,21 +566,33 @@ debounce_delay:
 
 ;pesan pada LCD saat rangkaian diaktifkan
 msg_start:
-    .ascii "Proyek Akhir"
-    .byte 13
-    .ascii "kelompok 8"
-    .byte 0
+  .ascii "Proyek Akhir"
+  .byte 13
+  .ascii "kelompok 8"
+  .byte 0
 
 ;pesan pada LCD untuk mode otomatis
 msg_otomatis:
-    .ascii "MODE : OTOMATIS"
-    .byte 13
-    .ascii "ADC : "
-    .byte 0
+  .ascii "MODE : OTOMATIS"
+  .byte 13
+  .ascii "ADC : "
+  .byte 0
 
 ;pesan pada LCD untuk mode manual
 msg_manual:
-    .ascii "MODE : MANUAL"
-    .byte 13
-    .ascii "LED : "
-    .byte 0
+  .ascii "MODE : MANUAL"
+  .byte 13
+  .ascii "LED : "
+  .byte 0
+
+;pesan pada serial monitor untuk mode manual
+serial_msg_manual:
+  .ascii "MODE : MANUAL"
+  .byte 13 
+  .byte 0
+
+;pesan pada serial monitor untuk mode otomatis
+serial_msg_auto:
+  .ascii "MODE : OTOMATIS"
+  .byte 13
+  .byte 0
