@@ -20,7 +20,7 @@ main:
   ; Setup I/O
   CBI DDRC, 2        ; PC2 (input) - LDR2
   CBI DDRC, 3        ; PC3 (input) - LDR1
-  CBI DDRC, 4        ; PC4 (input) - LDR3
+  CBI DDRC, 1        ; PC1 (input) - LDR3
   SBI DDRB, 1        ; PB1 (output) - LED (OC1A)
   CBI DDRD, 2        ; PD2 (input) - button (INT0)
   SBI PORTD, 2       ; pull up input
@@ -59,9 +59,28 @@ main:
   STS EIMSK, R16
   SEI                               ; global interrupt enable
 
+  ; Setup I2C
+  RCALL I2C_init        ;initialize TWI module
+
+  ; Setup LCD
+  CLR   R21
+  CLR   R22
+  RCALL timer0_delay_ms          ;wait for LCD power on
+  RCALL LCD_init          ;subroutine to initialize LCD
 ;================================================================
 
 main_loop:
+      LDI   R30, lo8(msg_default)
+      LDI   R31, hi8(msg_default)
+      RCALL disp_msg          ;subroutine to display message
+      ;-----------------------------------------------------
+      rcall I2C_start
+      ldi R29, 0x7C         ; Write address of LCD: 0x7C
+      rcall I2C_write
+      LDI   R16, 0x01         ;clear LCD
+      RCALL command_wrt       ;send command code
+      RCALL timer0_delay_ms
+      RCALL I2C_stop
   ; Baca LDR (ADC2)
   LDI R16, 0x62      ; channel ADC2
   STS ADMUX, R16
@@ -75,7 +94,7 @@ main_loop:
   LDS R20, ADCH      ; simpan hasil di R20
 
   ; Baca LDR (ADC4)
-  LDI R16, 0x64      ; channel ADC4
+  LDI R16, 0x61      ; channel ADC4
   STS ADMUX, R16
   RCALL start_adc
   LDS R22, ADCH      ; simpan hasil di R22
@@ -299,6 +318,147 @@ timer0_delay_ms_done:
   RET
 
 ;================================================================
+LCD_init:
+      rcall I2C_start
+      ldi R29, 0x7C         ; Write address of LCD: 0x7C
+      rcall I2C_write
+
+      CLR   R21
+      CLR   R22
+      LDI   R16, 0x33         ;init LCD for 4-bit data
+      RCALL command_wrt       ;send to command register
+      RCALL timer0_delay_ms
+      LDI   R16, 0x32         ;init LCD for 4-bit data
+      RCALL command_wrt
+      RCALL timer0_delay_ms
+      LDI   R16, 0x28         ;LCD 2 lines, 5x7 matrix
+      RCALL command_wrt
+      RCALL timer0_delay_ms
+      LDI   R16, 0x0C         ;disp ON, cursor OFF
+      RCALL command_wrt
+      LDI   R16, 0x01         ;clear LCD
+      RCALL command_wrt
+      RCALL timer0_delay_ms
+      LDI   R16, 0x06         ;shift cursor right
+      RCALL command_wrt
+
+      RCALL I2C_stop
+      RET  
+;================================================================
+command_wrt:
+      MOV   R29, R16
+      SWAP  R29               ;swap nibbles
+      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
+      ORI   R29, 0b00000100   ;RS = 0 for command & EN = 1
+      rcall I2C_write
+      RCALL delay_short       ;widen EN pulse
+      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
+      rcall I2C_write
+      RCALL delay_us          ;delay in micro seconds
+      ;----------------------------------------------------
+      MOV   R29, R16
+      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
+      ORI   R29, 0b00000100   ;RS = 0 for command & EN = 1
+      rcall I2C_write
+      RCALL delay_short       ;widen EN pulse
+      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
+      rcall I2C_write
+      RCALL delay_us          ;delay in micro seconds
+      RET
+;================================================================
+data_wrt:
+      MOV   R29, R16
+      SWAP  R29               ;swap nibbles
+      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
+      ORI   R29, 0b00000101   ;RS = 1 for data & EN = 1
+      rcall I2C_write
+      RCALL delay_short       ;widen EN pulse
+      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
+      rcall I2C_write
+      RCALL delay_us          ;delay in micro seconds
+      ;----------------------------------------------------
+      MOV   R29, R16
+      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
+      ORI   R29, 0b00000101   ;RS = 1 for data & EN = 1
+      rcall I2C_write
+      RCALL delay_short       ;widen EN pulse
+      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
+      rcall I2C_write
+      RCALL delay_us          ;delay in micro seconds
+      RET
+;================================================================
+disp_msg:
+    rcall I2C_start
+    ldi R29, 0x7C
+    rcall I2C_write
+agn:LPM   R16, Z+                   ;memuat char dari string pada R16
+    CPI   R16, 13
+    BREQ  newl
+    CPI   R16, 0                    ;memeriksa apakah R16=0 (akhir dari string)
+    BREQ  ext                       ;exit jika R16=0
+    ;--------------------------------------------------------------------
+    CLR   R21
+    LDI   R22, 50
+    RCALL timer0_delay_ms    
+    RCALL data_wrt
+    ;--------------------------------------------------------------------
+    RJMP  agn                       ;loop untuk mendapatkan char selanjutnya
+    ;--------------------------------------------------------------------
+ext:RCALL I2C_stop
+    LDI   R21, 12
+    LDI   R22, 232
+    RCALL timer0_delay_ms
+    RET
+newl: LDI   R16, 0xC0         ;cursor beginning of 2nd line
+      RCALL command_wrt
+      RCALL timer0_delay_ms
+      RJMP agn
+;================================================================
+delay_short:
+      NOP
+      NOP
+      RET
+;------------------------
+delay_us:
+      LDI   R20, 90
+l3:   RCALL delay_short
+      DEC   R20
+      BRNE  l3
+      RET
+;================================================================
+I2C_init:
+    LDI   R28, 0
+    STS   TWSR, R28       ; Prescaler = 1 (TWPS = 00)
+    LDI   R28, 24         ; TWBR = 24 → SCL ≈ 250 kHz
+    STS   TWBR, R28
+    RET
+;==============================================================
+I2C_start:
+    LDI   R28, (1<<TWINT)|(1<<TWSTA)|(1<<TWEN)
+    STS   TWCR, R28       ;transmit START condition
+    ;----------------------------------------------------------
+wt1:LDS   R28, TWCR
+    SBRS  R28, TWINT      ;TWI interrupt = 1?
+    RJMP  wt1             ;no, wait for end of transmission
+    ;----------------------------------------------------------
+    RET
+;==============================================================
+I2C_write:
+    STS   TWDR, R29       ;copy SLA+W into data register
+    LDI   R28, (1<<TWINT)|(1<<TWEN)
+    STS   TWCR, R28       ;transmit SLA+W
+    ;----------------------------------------------------------
+wt2:LDS   R28, TWCR
+    SBRS  R28, TWINT
+    RJMP  wt2             ;wait for end of transmission
+    ;----------------------------------------------------------
+    RET
+;==============================================================
+I2C_stop:
+    LDI   R28, (1<<TWINT)|(1<<TWSTO)|(1<<TWEN)
+    STS   TWCR, R28       ;transmit STOP condition
+    RET
+;================================================================
 
 ; Interrupt untuk switch mode otomatis <-> manual
 INT0_vect:
@@ -323,3 +483,9 @@ debounce_delay:
   POP R17
   POP R16
   RETI
+
+msg_default:
+    .ascii "Proyek Akhir"
+    .byte 13
+    .ascii "kelompok 8"
+    .byte 0
