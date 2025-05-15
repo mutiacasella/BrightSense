@@ -1,8 +1,9 @@
 #define __SFR_OFFSET 0x00
 #include "avr/io.h"
+#include "avr/interrupt.h"
 
 .global main
-.global INT0_vect
+.global __vector_1
 
 ;================================================================
 
@@ -22,6 +23,7 @@ main:
   CBI DDRC, 3        ; PC3 (input) - LDR1
   CBI DDRC, 1        ; PC1 (input) - LDR3
   SBI DDRB, 1        ; PB1 (output) - LED (OC1A)
+  SBI DDRB, 0        ; PB1 (output) - LED (OC1A)
   CBI DDRD, 2        ; PD2 (input) - button (INT0)
   SBI PORTD, 2       ; pull up input
   CBI DDRD, 3        ; PD3 (input) - button decrement
@@ -53,11 +55,11 @@ main:
   STS TCCR1B, R16
 
   ; Setup INT0 (interrupt external pada PD2)
-  LDI R16, (1 << ISC01)
-  STS EICRA, R16
-  LDI R16, (1<<INT0)                ; enable INT0
-  STS EIMSK, R16
-  SEI                               ; global interrupt enable
+  LDI R16, (1<<ISC01)
+  OUT MCUCR, R16      ;Menggunakan mode falling-edge pada interrupt eksternal INT0
+  LDI R16, (1<<INT0)
+  OUT EIMSK, r16      ;Mengaktifkan pin INT0
+  SEI                 ;Mengaktifkan flag Interrupt pada status register
 
   ; Setup I2C
   RCALL I2C_init        ;initialize TWI module
@@ -548,7 +550,8 @@ I2C_stop:
 ;================================================================
 
 ; Interrupt untuk switch mode otomatis <-> manual
-INT0_vect:
+__vector_1:
+  SBI  PORTB, 0
   PUSH R16
   PUSH R17
   PUSH R18
