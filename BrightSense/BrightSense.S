@@ -68,19 +68,23 @@ main:
   RCALL timer0_delay_ms          ;wait for LCD power on
   RCALL LCD_init          ;subroutine to initialize LCD
 ;================================================================
-
+  LDI   R30, lo8(msg_default)
+  LDI   R31, hi8(msg_default)
+  RCALL disp_msg          ;subroutine to display message
+  LDI   R21, 11         ;delay 3 detik
+  LDI   R22, 184
+  RCALL timer0_delay_ms
+  ;-----------------------------------------------------
+  RCALL I2C_start
+  LDI R29, 0x7C         ; Write address of LCD: 0x7C
+  RCALL I2C_write
+  LDI   R27, 0x80
+  LDI   R16, 0x01         ;clear LCD
+  RCALL command_wrt       ;send command code
+  RCALL timer0_delay_ms
+  RCALL I2C_stop
+;================================================================  
 main_loop:
-      LDI   R30, lo8(msg_default)
-      LDI   R31, hi8(msg_default)
-      RCALL disp_msg          ;subroutine to display message
-      ;-----------------------------------------------------
-      rcall I2C_start
-      ldi R29, 0x7C         ; Write address of LCD: 0x7C
-      rcall I2C_write
-      LDI   R16, 0x01         ;clear LCD
-      RCALL command_wrt       ;send command code
-      RCALL timer0_delay_ms
-      RCALL I2C_stop
   ; Baca LDR (ADC2)
   LDI R16, 0x62      ; channel ADC2
   STS ADMUX, R16
@@ -116,6 +120,28 @@ main_loop:
   ; Kirim ke USART
   RCALL print_3digit_decimal
 
+  LDI   R30, lo8(msg_otomatis)
+  LDI   R31, hi8(msg_otomatis)
+  RCALL disp_msg          ;subroutine to display message
+  ;-----------------------------------------------------
+  RCALL timer0_delay_ms
+  RCALL LCD_print_3digit_decimal
+  LDI   R21, 11         ;delay 3 detik
+  LDI   R22, 184
+  RCALL timer0_delay_ms
+  ;-----------------------------------------------------
+    LDI   R21, 12
+    LDI   R22, 232
+    RCALL timer0_delay_ms
+  RCALL I2C_start
+  LDI R29, 0x7C         ; Write address of LCD: 0x7C
+  RCALL I2C_write
+  LDI   R27, 0x80
+  LDI   R16, 0x01         ;clear LCD
+  RCALL command_wrt       ;send command code
+  RCALL timer0_delay_ms
+  RCALL I2C_stop
+
   ; Atur PWM
   LDI R18, 255
   SUB R18, R23
@@ -145,6 +171,26 @@ manual_loop:
 
   ; Kirim ke USART
   RCALL print_3digit_decimal
+
+  LDI   R30, lo8(msg_manual)
+  LDI   R31, hi8(msg_manual)
+  RCALL disp_msg          ;subroutine to display message
+  ;-----------------------------------------------------
+  RCALL LCD_print_3digit_decimal
+  LDI   R21, 11         ;delay 3 detik
+  LDI   R22, 184
+  RCALL timer0_delay_ms
+  ;-----------------------------------------------------
+  RCALL I2C_start
+  LDI R29, 0x7C         ; Write address of LCD: 0x7C
+  RCALL I2C_write
+  LDI   R27, 0x80
+  LDI   R16, 0x01         ;clear LCD
+  RCALL command_wrt       ;send command code
+  RCALL timer0_delay_ms
+  RCALL I2C_stop
+
+  RCALL LCD_print_3digit_decimal
 
 manual_loop_skip_print:
   CLR R21             ; memberikan delay 10ms 
@@ -325,6 +371,7 @@ LCD_init:
 
       CLR   R21
       CLR   R22
+      LDI   R27, 0x80
       LDI   R16, 0x33         ;init LCD for 4-bit data
       RCALL command_wrt       ;send to command register
       RCALL timer0_delay_ms
@@ -339,6 +386,7 @@ LCD_init:
       LDI   R16, 0x01         ;clear LCD
       RCALL command_wrt
       RCALL timer0_delay_ms
+      CLR   R27
       LDI   R16, 0x06         ;shift cursor right
       RCALL command_wrt
 
@@ -346,43 +394,19 @@ LCD_init:
       RET  
 ;================================================================
 command_wrt:
+      MOV   R29, R27
+      rcall I2C_write
+      RCALL delay_us
       MOV   R29, R16
-      SWAP  R29               ;swap nibbles
-      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
-      ORI   R29, 0b00000100   ;RS = 0 for command & EN = 1
-      rcall I2C_write
-      RCALL delay_short       ;widen EN pulse
-      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
-      rcall I2C_write
-      RCALL delay_us          ;delay in micro seconds
-      ;----------------------------------------------------
-      MOV   R29, R16
-      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
-      ORI   R29, 0b00000100   ;RS = 0 for command & EN = 1
-      rcall I2C_write
-      RCALL delay_short       ;widen EN pulse
-      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
       rcall I2C_write
       RCALL delay_us          ;delay in micro seconds
       RET
 ;================================================================
 data_wrt:
+      MOV   R29, R27
+      rcall I2C_write
+      RCALL delay_us
       MOV   R29, R16
-      SWAP  R29               ;swap nibbles
-      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
-      ORI   R29, 0b00000101   ;RS = 1 for data & EN = 1
-      rcall I2C_write
-      RCALL delay_short       ;widen EN pulse
-      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
-      rcall I2C_write
-      RCALL delay_us          ;delay in micro seconds
-      ;----------------------------------------------------
-      MOV   R29, R16
-      ANDI  R29, 0xF0         ;mask low nibble & keep high nibble
-      ORI   R29, 0b00000101   ;RS = 1 for data & EN = 1
-      rcall I2C_write
-      RCALL delay_short       ;widen EN pulse
-      ANDI  R29, 0b11111011   ;EN = 0 for H-to-L pulse
       rcall I2C_write
       RCALL delay_us          ;delay in micro seconds
       RET
@@ -399,17 +423,16 @@ agn:LPM   R16, Z+                   ;memuat char dari string pada R16
     ;--------------------------------------------------------------------
     CLR   R21
     LDI   R22, 50
-    RCALL timer0_delay_ms    
+    RCALL timer0_delay_ms 
+    LDI   R27, 0xC0   
     RCALL data_wrt
     ;--------------------------------------------------------------------
     RJMP  agn                       ;loop untuk mendapatkan char selanjutnya
     ;--------------------------------------------------------------------
 ext:RCALL I2C_stop
-    LDI   R21, 12
-    LDI   R22, 232
-    RCALL timer0_delay_ms
     RET
-newl: LDI   R16, 0xC0         ;cursor beginning of 2nd line
+newl: LDI   R27, 0x80   
+      LDI   R16, 0xC0         ;cursor beginning of 2nd line
       RCALL command_wrt
       RCALL timer0_delay_ms
       RJMP agn
@@ -420,11 +443,75 @@ delay_short:
       RET
 ;------------------------
 delay_us:
+      PUSH  R20
       LDI   R20, 90
 l3:   RCALL delay_short
       DEC   R20
       BRNE  l3
+      POP   R20
       RET
+
+; Print ke LCD
+LCD_print_3digit_decimal:
+  PUSH R16
+  PUSH R17
+  PUSH R18
+  PUSH R19
+  PUSH R20
+  PUSH R21
+  PUSH R23
+  PUSH R24
+  PUSH R25
+
+  rcall I2C_start
+  ldi R29, 0x7C
+  rcall I2C_write
+
+  ; Inisialisasi R17:R16 dengan nilai R23 (0-255)
+  CLR R17
+  MOV R16, R23
+
+  ; Digit ratusan: (R17:R16) ÷ 100
+  LDI R25, 0
+  LDI R24, 100
+  RCALL div_16bit
+  MOV R16, R18         ; hasil ke R16
+  SUBI R16, -'0'       ; convert to ASCII
+  LDI R27, 0xC0
+  RCALL data_wrt
+
+  ; Sisa di R21:R20
+  MOV R17, R21
+  MOV R16, R20
+
+  ; Digit puluhan: sisa ÷ 10
+  LDI R25, 0
+  LDI R24, 10
+  RCALL div_16bit
+  MOV R16, R18
+  SUBI R16, -'0'
+  LDI R27, 0xC0
+  RCALL data_wrt
+
+  ; Sisa satuan: ambil R20 langsung
+  MOV R16, R20
+  SUBI R16, -'0'
+  LDI R27, 0xC0
+  RCALL data_wrt
+
+  RCALL I2C_stop
+
+  POP R25
+  POP R24
+  POP R23
+  POP R21
+  POP R20
+  POP R19
+  POP R18
+  POP R17
+  POP R16
+  RET
+
 ;================================================================
 I2C_init:
     LDI   R28, 0
@@ -488,4 +575,16 @@ msg_default:
     .ascii "Proyek Akhir"
     .byte 13
     .ascii "kelompok 8"
+    .byte 0
+
+msg_otomatis:
+    .ascii "MODE : OTOMATIS"
+    .byte 13
+    .ascii "ADC : "
+    .byte 0
+
+msg_manual:
+    .ascii "MODE : MANUAL"
+    .byte 13
+    .ascii "LED : "
     .byte 0
