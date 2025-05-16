@@ -63,6 +63,7 @@ main:
   ; Setup I2C
   RCALL I2C_init      ; inisialisasi I2C untuk LCD
 
+
   ; Setup LCD
   RCALL LCD_init      ; inisialisasi LCD
 ;================================================================
@@ -110,7 +111,7 @@ main_loop:
   RCALL print_3digit_decimal
 
   RCALL I2C_start    ; memulai pengiriman I2C
-  LDI R29, 0x7C      ; address LCD = 0x7C
+  LDI R29, 0x4E      ; address LCD = 0x7C
   RCALL I2C_write
   LDI   R27, 0x80    ; RS = 0
   LDI   R16, 0x01    ; command untuk clear LCD
@@ -127,7 +128,7 @@ main_loop:
   SUB R18, R23
   STS OCR1A, R18
 
-  LDI R21, 3          ; memberikan delay 1000 ms (1 detik)
+  LDI R21, 30          ; memberikan delay 1000 ms (1 detik)
   LDI R22, 232        ; R21 & R22 (3*256 + 232 = 1000)
   RCALL timer0_delay_ms
   CPI R19, 0
@@ -153,7 +154,7 @@ manual_loop:
   RCALL print_3digit_decimal
 
   RCALL I2C_start     ; memulai pengiriman I2C
-  LDI R29, 0x7C       ; address LCD = 0x7C
+  LDI R29, 0x4E       ; address LCD = 0x7C
   RCALL I2C_write
   LDI   R27, 0x80     ; RS = 0
   LDI   R16, 0x01     ; command untuk clear LCD
@@ -167,7 +168,7 @@ manual_loop:
 
 manual_loop_skip_print:
   CLR R21             ; memberikan delay 10ms 
-  LDI R22, 10
+  LDI R22, 1
   RCALL timer0_delay_ms
   CPI R19, 1
   BREQ manual_loop    ; loop mode manual
@@ -339,7 +340,7 @@ timer0_delay_ms_done:
 ;================================================================
 LCD_init:
   RCALL I2C_start         ; memulai pengiriman I2C
-  ldi R29, 0x7C           ; address LCD = 0x7C
+  LDI R29, 0x4E           ; address LCD = 0x7C
   RCALL I2C_write
 
   CLR   R21
@@ -351,9 +352,9 @@ LCD_init:
   RCALL command_wrt       ; mengirimkan command
   LDI   R16, 0x01         ; command untuk clear LCD
   RCALL command_wrt       ; mengirimkan command
+  CLR   R27
   LDI   R16, 0x06         ; command untuk shift cursor right
   RCALL command_wrt       ; mengirimkan command
-
   RCALL I2C_stop          ; menghentikan pengiriman I2C
   RET  
 ;================================================================
@@ -377,7 +378,7 @@ data_wrt:
 ;================================================================
 disp_msg:
   RCALL I2C_start           ; memulai pengiriman I2C
-  ldi R29, 0x7C             ; address LCD = 0x7C
+  LDI R29, 0x4E             ; address LCD = 0x7C
   RCALL I2C_write
 agn:LPM   R16, Z+             ; memuat char dari string pada R16
   CPI   R16, 13
@@ -429,7 +430,7 @@ LCD_print_3digit_decimal:
   PUSH R25
 
   RCALL I2C_start             ; memulai pengiriman I2C
-  ldi R29, 0x7C               ; address LCD = 0x7C
+  LDI R29, 0x4E               ; address LCD = 0x7C
   RCALL I2C_write 
 
   ; Inisialisasi R17:R16 dengan nilai R23 (0-255)
@@ -481,7 +482,7 @@ LCD_print_3digit_decimal:
 I2C_init:
   LDI   R28, 0
   STS   TWSR, R28       ; Prescaler = 1 (TWPS = 00)
-  LDI   R28, 24         ; TWBR = 24 → SCL ≈ 250 kHz
+  LDI   R28, 72         ; TWBR = 72 → SCL ≈ 100 kHz
   STS   TWBR, R28
   RET
 ;==============================================================
@@ -499,6 +500,7 @@ I2C_write:
   STS   TWDR, R29       ;copy SLA+W into data register
   LDI   R28, (1<<TWINT)|(1<<TWEN)
   STS   TWCR, R28       ;transmit SLA+W
+  
   ;----------------------------------------------------------
 wt2:LDS   R28, TWCR
   SBRS  R28, TWINT
