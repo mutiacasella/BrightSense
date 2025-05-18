@@ -97,7 +97,34 @@ Penekanan tombol yang terhubung dengan pin PD2 akan memicu interrupt eksternal I
 
 ## iv. Test Results and Performance Evaluation
 
-<span style="color:red">(tolong diisi ges)</span>
+Pengujian sistem BrightSense dilakukan untuk mengevaluasi performa dan kestabilan seluruh fitur yang telah diimplementasikan, baik dalam mode otomatis maupun manual. Pada mode otomatis, sistem diuji dengan memvariasikan intensitas cahaya yang diterima oleh tiga sensor LDR. Hasil pengujian menunjukkan bahwa nilai ADC dari ketiga sensor dapat terbaca secara akurat dan konsisten. Nilai-nilai ini kemudian dirata-ratakan dan digunakan untuk menghasilkan sinyal PWM, yang mengatur kecerahan LED secara proporsional terhadap kondisi pencahayaan. LED menyala terang saat cahaya redup, dan meredup saat pencahayaan meningkat, sesuai dengan logika sistem.
+
+Sementara itu, pada mode manual, pengujian difokuskan pada penggunaan tombol input untuk menaikkan dan menurunkan tingkat kecerahan LED. Tombol-tombol pada pin PD3 dan PD4 merespons dengan cepat, dan setiap perubahan nilai PWM langsung ditampilkan ke LCD dan serial monitor secara real time. Perpindahan antara mode otomatis dan manual dilakukan menggunakan tombol interrupt eksternal pada pin PD2. Hasil pengujian menunjukkan bahwa transisi antar mode berlangsung mulus tanpa mengganggu proses utama sistem, dan nilai PWM dapat tetap dipertahankan atau diperbarui sesuai kondisi.
+
+Selain pengujian fungsional pada sistem mikrokontroler, dilakukan pula pengujian sistem enkripsi dan dekripsi menggunakan ModelSim, Quartus, serta pengujian berbasis file teks. Tujuannya adalah untuk memastikan akurasi proses logika digital, efisiensi implementasi pada perangkat keras, serta keakuratan data hasil enkripsi dan dekripsi.
+
+Berikut ini adalah hasil visual dari berbagai metode pengujian yang dilakukan:
+
+#### Simulasi Waveform di ModelSim
+
+![alt text](image.png)  
+*Gambar 1 – Hasil simulasi enkripsi menunjukkan proses transformasi data dari plaintext menjadi ciphertext secara sinkron terhadap clock dan sinyal kontrol.*
+
+![alt text](image-1.png)
+*Gambar 2 – Simulasi dekripsi memperlihatkan proses pengembalian ciphertext ke plaintext, namun menunjukkan ketidaksesuaian pada penggunaan round key.*
+
+#### Proses Sintesis di Quartus
+
+![alt text](image-2.png) 
+*Gambar 3 – Proses sintesis di Quartus menunjukkan bahwa desain logika dapat diimplementasikan dengan efisien, tanpa pelanggaran waktu atau penggunaan sumber daya yang berlebihan.*
+
+#### Pengujian Fungsional Berbasis Teks
+
+![alt text](image-3.png) 
+*Gambar 4 – Hasil uji enkripsi berbasis teks menunjukkan ciphertext berhasil dihasilkan dari plaintext sesuai algoritma.*
+
+![alt text](image-4.png)  
+*Gambar 5 – Hasil uji dekripsi menunjukkan bahwa output belum sepenuhnya sesuai dengan plaintext awal akibat kesalahan round key di awal dekripsi.*
 
 
 ## v. Conclusion and Future Work
