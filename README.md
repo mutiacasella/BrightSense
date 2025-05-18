@@ -97,7 +97,15 @@ Penekanan tombol yang terhubung dengan pin PD2 akan memicu interrupt eksternal I
 
 ## iv. Test Results and Performance Evaluation
 
-(belum)
+Pengujian dilakukan secara langsung pada rangkaian fisik sistem *BrightSense* menggunakan mikrokontroler Arduino Uno, tiga buah sensor LDR, satu buah LED, dan tiga tombol input. Sistem diuji dalam dua mode utama, yaitu mode otomatis dan mode manual, dengan pemantauan melalui serial monitor serta tampilan LCD 16x2 berbasis I2C.
+
+Pada **mode otomatis**, sistem berhasil menyesuaikan tingkat kecerahan LED secara real-time berdasarkan intensitas cahaya di lingkungan. Sensor LDR membaca nilai pencahayaan dari tiga arah berbeda, yang kemudian dirata-ratakan dan digunakan untuk menentukan duty cycle PWM. Saat pencahayaan sekitar berkurang, LED menyala lebih terang, dan saat cahaya meningkat, LED meredup secara bertahap. Ini menunjukkan bahwa pembacaan ADC, perhitungan logika, dan pengendalian PWM berjalan dengan baik.
+
+Pada **mode manual**, tombol-tombol PD3 dan PD4 digunakan untuk menurunkan atau menaikkan kecerahan LED secara langsung. Mode ini diaktifkan melalui tombol interrupt eksternal yang terhubung ke pin PD2. Sistem berhasil berpindah mode tanpa mengganggu proses utama, dan perubahan nilai PWM dapat terlihat secara responsif pada LED. Namun, ditemukan kendala pada tampilan LCD — **modul LCD tidak menampilkan data apa pun selama pengujian fisik**, meskipun telah berfungsi normal dalam simulasi. Masalah ini diduga disebabkan oleh konfigurasi alamat I2C yang tidak sesuai atau kesalahan wiring.
+
+Meski begitu, seluruh data sistem tetap dapat dimonitor secara real-time melalui serial monitor Arduino IDE, sehingga semua fungsi utama tetap dapat divalidasi.
+
+Berikut dokumentasi pengujian rangkaian fisik:
 
 ![Y65GbH.jpg](https://s6.imgcdn.dev/Y65GbH.jpg)
 
