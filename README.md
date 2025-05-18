@@ -29,7 +29,7 @@ BrightSense mengintegrasikan berbagai komponen input dan output yang dirakit pad
   Ketiga sensor LDR dipasang pada posisi yang berbeda untuk menangkap intensitas cahaya dari berbagai arah. Masing-masing sensor dihubungkan dengan resistor 10kΩ sebagai pembagi tegangan (voltage divider), yang dikonfigurasikan sebagai pull-down untuk menghasilkan sinyal analog yang sesuai terhadap tingkat pencahayaan. Sensor diuji dengan memantau perubahan nilai ADC yang hasilnya akan ditampilkan melalui serial monitor. Pin-pin yang digunakan adalah:
   - LDR1 : PC3 / ADC3
   - LDR2 : PC2 / ADC2
-  - LDR3 : PC1 / ADC4
+  - LDR3 : PC1 / ADC1
   
 - **LED**
   
@@ -63,7 +63,7 @@ Sistem BrightSense terbagi dalam dua mode utama, yaitu:
 ### Fitur dan Implementasi 
 - **ADC (Analog to Digital Converter)**
    
-   Menggunakan 3 channel ADC, yaitu ADC2 (PC2), ADC3 (PC3), dan ADC4 (PC1). Data dari ketiga LDR dibaca satu per satu, lalu rata-rata dari hasil pembacaan sensor tersebut akan dihitung dengan menggunakan subrutin pembagian 16 bit. Hasil perhitungan tersebut kemudian disimpan dalam register dan digunakan sebagai acuan yang mengatur tingkat kecerahan LED pada mode otomatis.
+   Menggunakan 3 channel ADC, yaitu ADC2 (PC2), ADC3 (PC3), dan ADC1 (PC1). Data dari ketiga LDR dibaca satu per satu, lalu rata-rata dari hasil pembacaan sensor tersebut akan dihitung dengan menggunakan subrutin pembagian 16 bit. Hasil perhitungan tersebut kemudian disimpan dalam register dan digunakan sebagai acuan yang mengatur tingkat kecerahan LED pada mode otomatis.
 
 - **Push Button pada Input Manual**
   
