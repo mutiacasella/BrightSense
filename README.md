@@ -97,11 +97,7 @@ Penekanan tombol yang terhubung dengan pin PD2 akan memicu interrupt eksternal I
 
 ## iv. Test Results and Performance Evaluation
 
-Pengujian sistem BrightSense dilakukan untuk mengevaluasi performa dan kestabilan seluruh fitur yang telah diimplementasikan, baik dalam mode otomatis maupun manual. Pada mode otomatis, sistem diuji dengan memvariasikan intensitas cahaya yang diterima oleh tiga sensor LDR. Hasil pengujian menunjukkan bahwa nilai ADC dari ketiga sensor dapat terbaca secara akurat dan konsisten. Nilai-nilai ini kemudian dirata-ratakan dan digunakan untuk menghasilkan sinyal PWM, yang mengatur kecerahan LED secara proporsional terhadap kondisi pencahayaan. LED menyala terang saat cahaya redup, dan meredup saat pencahayaan meningkat, sesuai dengan logika sistem.
-
-Sementara itu, pada mode manual, pengujian difokuskan pada penggunaan tombol input untuk menaikkan dan menurunkan tingkat kecerahan LED. Tombol-tombol pada pin PD3 dan PD4 merespons dengan cepat, dan setiap perubahan nilai PWM langsung ditampilkan ke LCD dan serial monitor secara real time. Perpindahan antara mode otomatis dan manual dilakukan menggunakan tombol interrupt eksternal pada pin PD2. Hasil pengujian menunjukkan bahwa transisi antar mode berlangsung mulus tanpa mengganggu proses utama sistem, dan nilai PWM dapat tetap dipertahankan atau diperbarui sesuai kondisi.
-
-Selain pengujian fungsional pada sistem mikrokontroler, dilakukan pula pengujian sistem enkripsi dan dekripsi menggunakan ModelSim, Quartus, serta pengujian berbasis file teks. Tujuannya adalah untuk memastikan akurasi proses logika digital, efisiensi implementasi pada perangkat keras, serta keakuratan data hasil enkripsi dan dekripsi.
+(belum)
 
 ![Y65GbH.jpg](https://s6.imgcdn.dev/Y65GbH.jpg)
 
