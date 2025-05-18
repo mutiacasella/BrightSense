@@ -1,5 +1,13 @@
 # BrightSense: Multi-Point Smart Light Monitoring System
 
+## Daftar Anggota Kelompok
+- Dimas Ananda Sutiardi 2306250586
+- Muhammad Bryan Farras 2306230975
+- Muhamad Dzaky Maulana 2306264401
+- Mutia Casella 2306202870
+- Salim 2306204604 
+
+
 ## i. Introduction to the Problem and the Solution
 
 Sistem pencahayaan merupakan salah satu aspek penting dalam kehidupan sehari-hari, karena hampir seluruh aktivitas manusia memerlukan penerangan yang memadai. Seiring dengan meningkatnya kebutuhan akan kenyamanan dan efisiensi, sistem pencahayaan adaptif menjadi salah satu solusi yang relevan untuk menjawab tantangan tersebut. Sebagai upaya untuk memenuhi kebutuhan tersebut, dikembangkan suatu sistem monitoring cahaya berbasis mikrokontroler Arduino UNO yang dinamakan BrightSense. BrightSense merupakan sebuah sistem monitoring yang memanfaatkan tiga buah sensor LDR (Light Dependent Resistor) untuk mendeteksi intensitas cahaya dari berbagai arah. Data yang diperoleh dari ketiga sensor kemudian diolah, di mana hasil pengolahan data tersebut digunakan untuk mengatur tingkat kecerahan sebuah LED melalui sinyal PWM (Pulse Width Modulation). 
