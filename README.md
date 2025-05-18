@@ -103,28 +103,7 @@ Sementara itu, pada mode manual, pengujian difokuskan pada penggunaan tombol inp
 
 Selain pengujian fungsional pada sistem mikrokontroler, dilakukan pula pengujian sistem enkripsi dan dekripsi menggunakan ModelSim, Quartus, serta pengujian berbasis file teks. Tujuannya adalah untuk memastikan akurasi proses logika digital, efisiensi implementasi pada perangkat keras, serta keakuratan data hasil enkripsi dan dekripsi.
 
-Berikut ini adalah hasil visual dari berbagai metode pengujian yang dilakukan:
-
-#### Simulasi Waveform di ModelSim
-
-![alt text](image.png)  
-*Gambar 1 – Hasil simulasi enkripsi menunjukkan proses transformasi data dari plaintext menjadi ciphertext secara sinkron terhadap clock dan sinyal kontrol.*
-
-![alt text](image-1.png)
-*Gambar 2 – Simulasi dekripsi memperlihatkan proses pengembalian ciphertext ke plaintext, namun menunjukkan ketidaksesuaian pada penggunaan round key.*
-
-#### Proses Sintesis di Quartus
-
-![alt text](image-2.png) 
-*Gambar 3 – Proses sintesis di Quartus menunjukkan bahwa desain logika dapat diimplementasikan dengan efisien, tanpa pelanggaran waktu atau penggunaan sumber daya yang berlebihan.*
-
-#### Pengujian Fungsional Berbasis Teks
-
-![alt text](image-3.png) 
-*Gambar 4 – Hasil uji enkripsi berbasis teks menunjukkan ciphertext berhasil dihasilkan dari plaintext sesuai algoritma.*
-
-![alt text](image-4.png)  
-*Gambar 5 – Hasil uji dekripsi menunjukkan bahwa output belum sepenuhnya sesuai dengan plaintext awal akibat kesalahan round key di awal dekripsi.*
+![Y65GbH.jpg](https://s6.imgcdn.dev/Y65GbH.jpg)
 
 
 ## v. Conclusion and Future Work
